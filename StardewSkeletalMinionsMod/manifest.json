@@ -1,0 +1,9 @@
+﻿{
+  "Name": "Skeletal Minions",
+  "Author": "Draglan",
+  "Version": "0.1",
+  "Description": "Summon skeletal minions to do farmwork for you.",
+  "UniqueID": "Draglan.SkeletalMinionsMod",
+  "EntryDll": "StardewSkeletalMinionsMod.dll",
+  "UpdateKeys": []
+}
