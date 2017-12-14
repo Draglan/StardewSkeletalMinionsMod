@@ -25,6 +25,15 @@ namespace StardewSkeletalMinionsMod
 
             helper.ConsoleCommands.Add("growallcrops", "Completely grow all crops in the current location.", GrowAllCrops);
             helper.ConsoleCommands.Add("seeds", "Add seeds to your inventory.", AddSeedsToInventory);
+            helper.ConsoleCommands.Add("wandmode", "Toggle Skeleton Wand wand mode.", toggleWandMode);
+        }
+
+        private void toggleWandMode(string command, string[] args) {
+            foreach (Item o in Game1.player.items) {
+                if (o is SkeletonWand) {
+                    (o as SkeletonWand).goToNextWandMode();
+                }
+            }
         }
 
         private void GrowAllCrops(string command, string[] args)
