@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewValley;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using StardewValley.Menus;
 using StardewValley.TerrainFeatures;
-using System.Xml.Serialization;
-using StardewValley.Monsters;
-using StardewValley.Characters;
-using StardewValley.Quests;
 
 namespace StardewSkeletalMinionsMod
 {
-
     public class SkeletalMinionsMod : Mod
     {
         public static Mod mod;
