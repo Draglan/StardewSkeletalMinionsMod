@@ -43,8 +43,6 @@ namespace StardewSkeletalMinionsMod
         }
 
         public SkeletonWand()
-            //: base()
-            //: base("Skeleton Wand", 0, 21, 0, false, 2)
         {
             build();
         }
@@ -202,7 +200,7 @@ namespace StardewSkeletalMinionsMod
                 location.characters.Add(minion);
             }
             sw.Stop();
-            SkeletalMinionsMod.mod.Monitor.Log($"Spawning planting minions took {sw.ElapsedMilliseconds} ms.");
+            SkeletalMinionsMod.mod.Monitor.Log($"Spawning (planting) minions took {sw.ElapsedMilliseconds} ms.");
         }
 
         List<SprinklerInfo> findAllSprinklers(GameLocation location)
@@ -262,7 +260,6 @@ namespace StardewSkeletalMinionsMod
                             if (candidate.seedsRequired > 0)
                             {
                                 sprinklers.Add(candidate);
-                                SkeletalMinionsMod.mod.Monitor.Log($"Found sprinkler at {candidate.position} that requires {candidate.seedsRequired} seeds.");
                             }
                         }
                     }
@@ -318,8 +315,7 @@ namespace StardewSkeletalMinionsMod
         private void spawnMinionsForHarvesting(GameLocation location, StardewValley.Farmer who)
         {
             const int tasksPerMinion = 50;
-
-            SkeletalMinionsMod.mod.Monitor.Log("*** SPAWNING SKELETONS ***");
+            
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
@@ -349,8 +345,7 @@ namespace StardewSkeletalMinionsMod
             }
 
             sw.Stop();
-            SkeletalMinionsMod.mod.Monitor.Log($"Spawning minions took {sw.ElapsedMilliseconds} ms.");
-            SkeletalMinionsMod.mod.Monitor.Log("**********************");
+            SkeletalMinionsMod.mod.Monitor.Log($"Spawning (harvesting) minions took {sw.ElapsedMilliseconds} ms.");
         }
 
         private List<HarvestingMinionTask> generateHarvestingTasks(GameLocation location)

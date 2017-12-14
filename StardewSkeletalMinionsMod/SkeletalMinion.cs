@@ -13,7 +13,6 @@ using xTile.Dimensions;
 
 namespace StardewSkeletalMinionsMod
 {
-    [XmlInclude(typeof(SkeletalMinion))]
     public class SkeletalMinion : NPC
     {
         public const string skeletalMinionName = "Skeletal Minion";
