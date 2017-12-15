@@ -7,6 +7,7 @@ using StardewValley.TerrainFeatures;
 using StardewValley.Menus;
 using System.Collections.Generic;
 using StardewValley.Objects;
+using StardewValley.Locations;
 
 namespace StardewSkeletalMinionsMod
 {
@@ -40,7 +41,8 @@ namespace StardewSkeletalMinionsMod
                 ShopMenu shop = e.NewMenu as ShopMenu;
                 if (shop.portraitPerson != null && shop.portraitPerson.name.Equals("Marlon"))
                 {
-                    if (!doesPlayerHaveSkeletonWandAnywhere())
+                    bool completedSkeletonTask = Game1.stats.getMonstersKilled("Skeleton") + Game1.stats.getMonstersKilled("Skeleton Mage") >= 50;
+                    if (completedSkeletonTask && !doesPlayerHaveSkeletonWandAnywhere())
                     {
                         Dictionary<Item, int[]> itemPriceAndStock = Helper.Reflection.GetPrivateValue<Dictionary<Item, int[]>>(shop, "itemPriceAndStock");
                         List<Item> forSale = Helper.Reflection.GetPrivateValue<List<Item>>(shop, "forSale");
@@ -55,7 +57,6 @@ namespace StardewSkeletalMinionsMod
 
         private bool doesPlayerHaveSkeletonWandAnywhere()
         {
-
             // check inventory
             foreach (Item item in Game1.player.items)
             {
