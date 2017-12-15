@@ -4,6 +4,8 @@ using StardewValley;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using StardewValley.TerrainFeatures;
+using StardewValley.Menus;
+using System.Collections.Generic;
 
 namespace StardewSkeletalMinionsMod
 {
@@ -22,10 +24,29 @@ namespace StardewSkeletalMinionsMod
             StardewModdingAPI.Events.ControlEvents.KeyPressed += ControlEvents_KeyPressed;
             StardewModdingAPI.Events.ControlEvents.MouseChanged += ControlEvents_MouseChanged;
             StardewModdingAPI.Events.SaveEvents.BeforeSave += SaveEvents_BeforeSave;
+            StardewModdingAPI.Events.MenuEvents.MenuChanged += MenuEvents_MenuChanged;
 
             helper.ConsoleCommands.Add("growallcrops", "Completely grow all crops in the current location.", GrowAllCrops);
             helper.ConsoleCommands.Add("seeds", "Add seeds to your inventory.", AddSeedsToInventory);
             helper.ConsoleCommands.Add("wandmode", "Toggle Skeleton Wand wand mode.", toggleWandMode);
+        }
+
+        /* Add the skeleton wand to Marlon's store */
+        private void MenuEvents_MenuChanged(object sender, StardewModdingAPI.Events.EventArgsClickableMenuChanged e)
+        {
+            if (e.NewMenu is ShopMenu)
+            {
+                ShopMenu shop = e.NewMenu as ShopMenu;
+                if (shop.portraitPerson != null && shop.portraitPerson.name.Equals("Marlon"))
+                {
+                    Dictionary<Item, int[]> itemPriceAndStock = (Dictionary<Item, int[]>)Helper.Reflection.GetPrivateField<Dictionary<Item, int[]>>(shop, "itemPriceAndStock");
+                    List<Item> forSale = (List<Item>)Helper.Reflection.GetPrivateField<List<Item>>(shop, "forSale");
+
+                    SkeletonWand skeletonWand = new SkeletonWand();
+                    itemPriceAndStock.Add(skeletonWand, new int[2] { 50000, int.MaxValue });
+                    forSale.Add(skeletonWand);
+                }
+            }
         }
 
         private void toggleWandMode(string command, string[] args) {
