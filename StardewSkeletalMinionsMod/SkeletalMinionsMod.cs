@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewValley.TerrainFeatures;
 using StardewValley.Menus;
 using System.Collections.Generic;
+using StardewValley.Objects;
 
 namespace StardewSkeletalMinionsMod
 {
@@ -39,14 +40,49 @@ namespace StardewSkeletalMinionsMod
                 ShopMenu shop = e.NewMenu as ShopMenu;
                 if (shop.portraitPerson != null && shop.portraitPerson.name.Equals("Marlon"))
                 {
-                    Dictionary<Item, int[]> itemPriceAndStock = (Dictionary<Item, int[]>)Helper.Reflection.GetPrivateField<Dictionary<Item, int[]>>(shop, "itemPriceAndStock");
-                    List<Item> forSale = (List<Item>)Helper.Reflection.GetPrivateField<List<Item>>(shop, "forSale");
+                    if (!doesPlayerHaveSkeletonWandAnywhere())
+                    {
+                        Dictionary<Item, int[]> itemPriceAndStock = Helper.Reflection.GetPrivateValue<Dictionary<Item, int[]>>(shop, "itemPriceAndStock");
+                        List<Item> forSale = Helper.Reflection.GetPrivateValue<List<Item>>(shop, "forSale");
 
-                    SkeletonWand skeletonWand = new SkeletonWand();
-                    itemPriceAndStock.Add(skeletonWand, new int[2] { 50000, int.MaxValue });
-                    forSale.Add(skeletonWand);
+                        SkeletonWand skeletonWand = new SkeletonWand();
+                        itemPriceAndStock.Add(skeletonWand, new int[2] { 50000, 1 });
+                        forSale.Add(skeletonWand);
+                    }
                 }
             }
+        }
+
+        private bool doesPlayerHaveSkeletonWandAnywhere()
+        {
+
+            // check inventory
+            foreach (Item item in Game1.player.items)
+            {
+                if (item is SkeletonWand) return true;
+            }
+
+            // check all chests, debris everywhere in the world
+            foreach (GameLocation l in Game1.locations)
+            {
+                foreach (StardewValley.Object o in l.Objects.Values)
+                {
+                    if (o is Chest)
+                    {
+                        foreach (Item item in (o as Chest).items)
+                        {
+                            if (item is SkeletonWand) return true;
+                        }
+                    }
+                }
+
+                foreach (Debris debris in l.debris)
+                {
+                    if (debris.item is SkeletonWand) return true;
+                }
+            }
+
+            return false;
         }
 
         private void toggleWandMode(string command, string[] args) {
@@ -162,8 +198,8 @@ namespace StardewSkeletalMinionsMod
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            if (Game1.player.hasItemWithNameThatContains("Skeleton Wand") == null)
-                Game1.player.addItemToInventoryBool(new SkeletonWand());
+            //if (Game1.player.hasItemWithNameThatContains("Skeleton Wand") == null)
+                //Game1.player.addItemToInventoryBool(new SkeletonWand());
         }
     }
 }
