@@ -13,6 +13,7 @@ namespace StardewSkeletalMinionsMod
     {
         /* All currently available tasks */
         private List<MinionTask> tasks;
+        private Dictionary<MinionTask, bool> inProgressTasks;
 
         // The number of tasks present in this manager.
         public int Count
@@ -23,6 +24,7 @@ namespace StardewSkeletalMinionsMod
         public MinionTaskPool()
         {
             tasks = new List<MinionTask>();
+            inProgressTasks = new Dictionary<MinionTask, bool>();
         }
         
         // Assign the closest, pathable task to the given minion, accepting only task names stored in 'taskTypes'.
@@ -51,6 +53,7 @@ namespace StardewSkeletalMinionsMod
                 if (task.setOwner(minion))
                 {
                     minion.currentTask = task;
+                    inProgressTasks.Add(task, true);
                     tasks.Remove(task);
                     return true;
                 }
@@ -59,10 +62,27 @@ namespace StardewSkeletalMinionsMod
             return false;
         }
 
-        // Add the given task to the manager.
-        public void addTask(MinionTask task)
+        // Add the given task to the manager. If the given task is equivalent to
+        // a task that is currently in progress, it will not be added.
+        public bool addTask(MinionTask task)
         {
-            tasks.Add(task);
+            if (!inProgressTasks.ContainsKey(task))
+            {
+                tasks.Add(task);
+                return true;
+            }
+            return false;
+        }
+
+        // Remove the given task from the task manager.
+        public void removeTask(MinionTask task) {
+            tasks.Remove(task);
+        }
+
+        // Mark the given task as complete.
+        public void markTaskComplete(MinionTask task)
+        {
+            inProgressTasks.Remove(task);
         }
 
         // Clear tasks with the given names in the given location. If names is left null, all tasks in the manager are cleared.
