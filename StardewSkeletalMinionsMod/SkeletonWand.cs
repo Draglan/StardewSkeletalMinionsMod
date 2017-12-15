@@ -51,7 +51,7 @@ namespace StardewSkeletalMinionsMod
 
         protected override string loadDescription()
         {
-            return "An ancient and powerful wand.";
+            return "An ancient and powerful wand. Use the middle mouse button to change modes.";
         }
 
         protected override string loadDisplayName()
@@ -73,7 +73,7 @@ namespace StardewSkeletalMinionsMod
 
         public override bool canBeDropped()
         {
-            return false;
+            return true;
         }
 
         public override bool canBeGivenAsGift()
@@ -83,7 +83,7 @@ namespace StardewSkeletalMinionsMod
 
         public override bool canBeTrashed()
         {
-            return false;
+            return true;
         }
 
         public override void DoFunction(GameLocation location, int x, int y, int power, StardewValley.Farmer who)
