@@ -638,12 +638,13 @@ namespace StardewSkeletalMinionsMod
             currentParentTileIndex = initialParentTileIndex;
             indexOfMenuItemView = 0;
             name = "Skeleton Wand";
-            description = "An ancient and powerful wand.";
+            description = loadDescription();
             stackable = false;
             category = -99;
         }
 
-        private void playWandUseEffect(StardewValley.Farmer who) {
+        private void playWandUseEffect(StardewValley.Farmer who)
+        {
             // taken from StardewValley.Tools:Wand.cs
             for (int index = 0; index < 12; ++index)
                 who.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(354, (float)Game1.random.Next(25, 75), 6, 1, new Vector2((float)Game1.random.Next((int)who.position.X - Game1.tileSize * 4, (int)who.position.X + Game1.tileSize * 3), (float)Game1.random.Next((int)who.position.Y - Game1.tileSize * 4, (int)who.position.Y + Game1.tileSize * 3)), false, Game1.random.NextDouble() < 0.5));
