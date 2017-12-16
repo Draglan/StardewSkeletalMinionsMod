@@ -28,8 +28,8 @@ namespace StardewSkeletalMinionsMod
             StardewModdingAPI.Events.SaveEvents.BeforeSave += SaveEvents_BeforeSave;
             StardewModdingAPI.Events.MenuEvents.MenuChanged += MenuEvents_MenuChanged;
 
-            helper.ConsoleCommands.Add("growallcrops", "Completely grow all crops in the current location.", GrowAllCrops);
-            helper.ConsoleCommands.Add("seeds", "Add seeds to your inventory.", AddSeedsToInventory);
+            //helper.ConsoleCommands.Add("growallcrops", "Completely grow all crops in the current location.", GrowAllCrops);
+            //helper.ConsoleCommands.Add("seeds", "Add seeds to your inventory.", AddSeedsToInventory);
             helper.ConsoleCommands.Add("wandmode", "Toggle Skeleton Wand wand mode.", toggleWandMode);
         }
 
@@ -86,7 +86,8 @@ namespace StardewSkeletalMinionsMod
             return false;
         }
 
-        private void toggleWandMode(string command, string[] args) {
+        private void toggleWandMode(string command, string[] args)
+        {
             foreach (Item o in Game1.player.items) {
                 if (o is SkeletonWand) {
                     (o as SkeletonWand).goToNextWandMode();
@@ -152,49 +153,49 @@ namespace StardewSkeletalMinionsMod
 
         private void ControlEvents_KeyPressed(object sender, StardewModdingAPI.Events.EventArgsKeyPressed e)
         {
-            if (!Context.IsWorldReady) return;
+            //if (!Context.IsWorldReady) return;
 
-            // place fully grown crops to test harvesting capabilities
-            if (e.KeyPressed == Keys.B)
-            {
-                if (Game1.player.ActiveObject==null || (Game1.player.ActiveObject != null && Game1.player.ActiveObject.category != StardewValley.Object.SeedsCategory))
-                {
-                    Game1.showRedMessage("Please select a seed as your active object.");
-                    return;
-                }
-                else
-                {
-                    int seedIndex = Game1.player.ActiveObject.parentSheetIndex;
+            //// place fully grown crops to test harvesting capabilities
+            //if (e.KeyPressed == Keys.B)
+            //{
+            //    if (Game1.player.ActiveObject==null || (Game1.player.ActiveObject != null && Game1.player.ActiveObject.category != StardewValley.Object.SeedsCategory))
+            //    {
+            //        Game1.showRedMessage("Please select a seed as your active object.");
+            //        return;
+            //    }
+            //    else
+            //    {
+            //        int seedIndex = Game1.player.ActiveObject.parentSheetIndex;
 
-                    for (int tileX = 0; tileX < Game1.currentLocation.map.Layers[0].LayerWidth; ++tileX)
-                    {
-                        for (int tileY = 0; tileY < Game1.currentLocation.map.Layers[0].LayerHeight; ++tileY)
-                        {
-                            if (Game1.currentLocation.doesTileHaveProperty(tileX, tileY, "Diggable", "Back") != null)
-                            {
-                                Vector2 key = new Vector2(tileX, tileY);
-                                Game1.currentLocation.makeHoeDirt(key);
+            //        for (int tileX = 0; tileX < Game1.currentLocation.map.Layers[0].LayerWidth; ++tileX)
+            //        {
+            //            for (int tileY = 0; tileY < Game1.currentLocation.map.Layers[0].LayerHeight; ++tileY)
+            //            {
+            //                if (Game1.currentLocation.doesTileHaveProperty(tileX, tileY, "Diggable", "Back") != null)
+            //                {
+            //                    Vector2 key = new Vector2(tileX, tileY);
+            //                    Game1.currentLocation.makeHoeDirt(key);
 
-                                if (Game1.currentLocation.terrainFeatures.ContainsKey(key))
-                                {
-                                    HoeDirt dirt = Game1.currentLocation.terrainFeatures[key] as HoeDirt;
-                                    if (dirt != null/* && dirt.canPlantThisSeedHere(seedIndex, tileX, tileY)*/)
-                                    {
-                                        dirt.plant(seedIndex, tileX, tileY, Game1.player);
-                                        dirt.crop.growCompletely();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            //                    if (Game1.currentLocation.terrainFeatures.ContainsKey(key))
+            //                    {
+            //                        HoeDirt dirt = Game1.currentLocation.terrainFeatures[key] as HoeDirt;
+            //                        if (dirt != null/* && dirt.canPlantThisSeedHere(seedIndex, tileX, tileY)*/)
+            //                        {
+            //                            dirt.plant(seedIndex, tileX, tileY, Game1.player);
+            //                            dirt.crop.growCompletely();
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
 
-            if (e.KeyPressed == Keys.Z)
-            {
-                this.Monitor.Log($"Your location: ({Game1.player.getTileLocationPoint()})");
+            //if (e.KeyPressed == Keys.Z)
+            //{
+            //    this.Monitor.Log($"Your location: ({Game1.player.getTileLocationPoint()})");
 
-            }
+            //}
         }
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
