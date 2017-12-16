@@ -49,6 +49,7 @@
     <Compile Include="HarvestingMinionTask.cs" />
     <Compile Include="MinionTask.cs" />
     <Compile Include="MinionTaskPool.cs" />
+    <Compile Include="ModConfig.cs" />
     <Compile Include="PlantingMinionTask.cs" />
     <Compile Include="SkeletalMinion.cs" />
     <Compile Include="SkeletalMinionsMod.cs" />

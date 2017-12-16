@@ -15,12 +15,15 @@ namespace StardewSkeletalMinionsMod
     {
         public static Mod mod;
         public static MinionTaskPool taskPool;
+        public static ModConfig config;
         
         public override void Entry(IModHelper helper)
         {
             mod = this;
             taskPool = new MinionTaskPool();
             SkeletonWand.loadSkeletonWandTextures();
+
+            config = Helper.ReadConfig<ModConfig>();
 
             StardewModdingAPI.Events.SaveEvents.AfterLoad += SaveEvents_AfterLoad;
             StardewModdingAPI.Events.ControlEvents.KeyPressed += ControlEvents_KeyPressed;
@@ -48,7 +51,7 @@ namespace StardewSkeletalMinionsMod
                         List<Item> forSale = Helper.Reflection.GetPrivateValue<List<Item>>(shop, "forSale");
 
                         SkeletonWand skeletonWand = new SkeletonWand();
-                        itemPriceAndStock.Add(skeletonWand, new int[2] { 50000, 1 });
+                        itemPriceAndStock.Add(skeletonWand, new int[2] { config.SkeletonWandPrice, 1 });
                         forSale.Add(skeletonWand);
                     }
                 }
