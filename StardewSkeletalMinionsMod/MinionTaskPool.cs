@@ -38,7 +38,7 @@ namespace StardewSkeletalMinionsMod
             else
                 candidates = new List<MinionTask>();
 
-            // narrow down candidates by task type
+            // narrow down candidates by task type and location
             if (candidates != tasks)
                 foreach (MinionTask task in tasks)
                     if (taskTypes.Contains(task.name) && task.location == minion.currentLocation && task.meetsItemRequirements(minion))
