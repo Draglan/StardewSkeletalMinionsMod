@@ -13,6 +13,7 @@ namespace StardewSkeletalMinionsMod
     {
         /* All currently available tasks */
         private List<MinionTask> tasks;
+        private Dictionary<MinionTask, bool> inProgressTasks;
 
         // The number of tasks present in this manager.
         public int Count
@@ -23,58 +24,14 @@ namespace StardewSkeletalMinionsMod
         public MinionTaskPool()
         {
             tasks = new List<MinionTask>();
+            inProgressTasks = new Dictionary<MinionTask, bool>();
         }
-
-        /*// Get a task with one of the given types/names. The first one found is returned and removed
-        // from the manager. Returns null if no suitable task can be found.
-        //public bool assignTask(SkeletalMinion minion, List<string> taskTypes)
-        //{
-        //    List<MinionTask> candidates = new List<MinionTask>();
-            
-        //    // collect list of eligible tasks
-        //    foreach (MinionTask task in tasks)
-        //    {
-        //        if (taskTypes.Contains(task.name) && task.meetsItemRequirements(minion))
-        //        {
-        //            candidates.Add(task);
-        //        }
-                    
-        //    }
-
-        //    // return closest task
-        //    MinionTask closest = null;
-        //    double closestDistance = double.MaxValue;
-
-        //    foreach (MinionTask task in candidates)
-        //    {
-        //        double distance = Math.Sqrt(Math.Pow(task.position.X - minion.getTileX(), 2) + Math.Pow(task.position.Y - minion.getTileY(), 2));
-        //        if (distance < closestDistance)
-        //        {
-        //            closestDistance = distance;
-        //            closest = task;
-        //        }
-        //    }
-
-        //    if (closest != null)
-        //    {
-        //        if (!closest.setOwner(minion))
-        //            return false;
-
-        //        minion.currentTask = closest;
-        //        tasks.Remove(closest);
-        //        return true;
-        //    }
-        //    return false;
-        //}*/
-
+        
         // Assign the closest, pathable task to the given minion, accepting only task names stored in 'taskTypes'.
         // If taskTypes is empty or null, any task type will be accepted.
         // Returns true if a task was assigned, false otherwise.
         public bool assignTask(SkeletalMinion minion, List<string> taskTypes)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
             List<MinionTask> candidates;
             if (taskTypes == null || taskTypes.Count == 0)
                 candidates = tasks;
@@ -84,7 +41,7 @@ namespace StardewSkeletalMinionsMod
             // narrow down candidates by task type
             if (candidates != tasks)
                 foreach (MinionTask task in tasks)
-                    if (taskTypes.Contains(task.name) && task.meetsItemRequirements(minion))
+                    if (taskTypes.Contains(task.name) && task.location == minion.currentLocation && task.meetsItemRequirements(minion))
                         candidates.Add(task);
 
             // sort by distance to minion
@@ -96,22 +53,36 @@ namespace StardewSkeletalMinionsMod
                 if (task.setOwner(minion))
                 {
                     minion.currentTask = task;
+                    inProgressTasks.Add(task, true);
                     tasks.Remove(task);
-                    sw.Stop();
-                    SkeletalMinionsMod.mod.Monitor.Log($"Assigning task took {sw.ElapsedMilliseconds} ms.");
                     return true;
                 }
             }
-
-            sw.Stop();
-            SkeletalMinionsMod.mod.Monitor.Log($"Assigning task (failed) took {sw.ElapsedMilliseconds} ms.");
+            
             return false;
         }
 
-        // Add the given task to the manager.
-        public void addTask(MinionTask task)
+        // Add the given task to the manager. If the given task is equivalent to
+        // a task that is currently in progress, it will not be added.
+        public bool addTask(MinionTask task)
         {
-            tasks.Add(task);
+            if (!inProgressTasks.ContainsKey(task))
+            {
+                tasks.Add(task);
+                return true;
+            }
+            return false;
+        }
+
+        // Remove the given task from the task manager.
+        public void removeTask(MinionTask task) {
+            tasks.Remove(task);
+        }
+
+        // Mark the given task as complete.
+        public void markTaskComplete(MinionTask task)
+        {
+            inProgressTasks.Remove(task);
         }
 
         // Clear tasks with the given names in the given location. If names is left null, all tasks in the manager are cleared.

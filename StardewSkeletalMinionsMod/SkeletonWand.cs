@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewValley;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using StardewValley.TerrainFeatures;
 using System.Diagnostics;
-using System.Xml.Serialization;
 using CustomElementHandler;
-using StardewValley.Tools;
 using StardewValley.Objects;
 
 /*
@@ -43,10 +38,8 @@ namespace StardewSkeletalMinionsMod
         }
 
         public SkeletonWand()
-            //: base()
-            //: base("Skeleton Wand", 0, 21, 0, false, 2)
         {
-            build();
+            build(WandMode.Harvesting.ToString());
         }
 
         public static void loadSkeletonWandTextures()
@@ -58,7 +51,7 @@ namespace StardewSkeletalMinionsMod
 
         protected override string loadDescription()
         {
-            return "An ancient and powerful wand.";
+            return "An ancient and powerful wand. Use the middle mouse button to change modes.";
         }
 
         protected override string loadDisplayName()
@@ -80,7 +73,7 @@ namespace StardewSkeletalMinionsMod
 
         public override bool canBeDropped()
         {
-            return false;
+            return true;
         }
 
         public override bool canBeGivenAsGift()
@@ -90,11 +83,18 @@ namespace StardewSkeletalMinionsMod
 
         public override bool canBeTrashed()
         {
-            return false;
+            return true;
         }
 
         public override void DoFunction(GameLocation location, int x, int y, int power, StardewValley.Farmer who)
         {
+            if (who.Stamina < who.MaxStamina / 2 + 1) {
+                Game1.showRedMessage("Not enough stamina.");
+                return;
+            }
+
+            bool usedSuccessfully = false;
+
             switch (wandMode)
             {
                 case WandMode.Planting:
@@ -136,6 +136,8 @@ namespace StardewSkeletalMinionsMod
                                 if (numFertilizer <= 0) attachments[1] = null;
                                 else attachments[1].Stack = numFertilizer;
                             }
+
+                            usedSuccessfully = true;
                         }
                         else
                             Game1.showRedMessage("The Skeleton Wand needs seeds.");
@@ -147,7 +149,16 @@ namespace StardewSkeletalMinionsMod
 
                 case WandMode.Harvesting:
                     spawnMinionsForHarvesting(location, who);
+                    usedSuccessfully = true;
                     break;
+            }
+
+            // if the wand's current action was successful, play sound effects etc.
+            if (usedSuccessfully) {
+                Game1.playSound("wand");
+                Game1.playSound("thunder");
+                playWandUseEffect(who);
+                who.Stamina -= who.MaxStamina / 2;
             }
         }
 
@@ -181,12 +192,12 @@ namespace StardewSkeletalMinionsMod
                 SkeletalMinionsMod.taskPool.addTask(task);
             }
 
+            List<Point> spawnPoints = findNearestSpawnLocations(who.getTileLocationPoint(), location, (uint)numSkeletons);
+
             // spawn skeletons
-            for (int i=0; i<numSkeletons; ++i)
+            for (int i=0; i<spawnPoints.Count; ++i)
             {
-                Point spawnPoint = new Point();
-                if (!findNearestSpawnLocation(who.getTileLocationPoint(), location, ref spawnPoint)) continue;
-                SkeletalMinion minion = new SkeletalMinion(new Vector2(spawnPoint.X, spawnPoint.Y)*Game1.tileSize, location, who, SkeletalMinionsMod.taskPool, new List<string> { nameof(PlantingMinionTask) });
+                SkeletalMinion minion = new SkeletalMinion(new Vector2(spawnPoints[i].X, spawnPoints[i].Y)*Game1.tileSize, location, who, SkeletalMinionsMod.taskPool, new List<string> { nameof(PlantingMinionTask) });
 
                 int seedsToAdd = Math.Min(totalSeedCount / numSkeletons, numSeeds);
                 int fertilizerToAdd = Math.Min(totalFertilizerCount / numSkeletons, numFertilizer);
@@ -200,9 +211,10 @@ namespace StardewSkeletalMinionsMod
                     minion.addItemToInventory(new StardewValley.Object(fertilizerIndex, fertilizerToAdd));
 
                 location.characters.Add(minion);
+                Utility.drawLightningBolt(new Vector2(spawnPoints[i].X * Game1.tileSize, spawnPoints[i].Y * Game1.tileSize), location);
             }
             sw.Stop();
-            SkeletalMinionsMod.mod.Monitor.Log($"Spawning planting minions took {sw.ElapsedMilliseconds} ms.");
+            SkeletalMinionsMod.mod.Monitor.Log($"Spawning (planting) minions took {sw.ElapsedMilliseconds} ms.");
         }
 
         List<SprinklerInfo> findAllSprinklers(GameLocation location)
@@ -262,7 +274,6 @@ namespace StardewSkeletalMinionsMod
                             if (candidate.seedsRequired > 0)
                             {
                                 sprinklers.Add(candidate);
-                                SkeletalMinionsMod.mod.Monitor.Log($"Found sprinkler at {candidate.position} that requires {candidate.seedsRequired} seeds.");
                             }
                         }
                     }
@@ -272,11 +283,18 @@ namespace StardewSkeletalMinionsMod
             return sprinklers;
         }
 
-        bool findNearestSpawnLocation(Point fromHere, GameLocation location, ref Point spawnPoint, int limit=25)
+        /* Attempt to find numSpawnPoints spawnable locations adjacent to fromHere.
+         * Returns true if numSpawnPoints locations were found, and false if the number
+         * of spawn points found was less than that number. 
+         * The spawn points are stored in spawnPoints. */
+        List<Point> findNearestSpawnLocations(Point fromHere, GameLocation location, uint numSpawnPoints, int limit=25)
         {
+            if (numSpawnPoints == 0) return new List<Point>();
+
             StardewValley.Monsters.Skeleton exemplar = new StardewValley.Monsters.Skeleton(new Vector2(0, 0));
             Queue<Point> points = new Queue<Point>();
             Dictionary<Point, bool> visited = new Dictionary<Point, bool>();
+            List<Point> spawnPoints = new List<Point>();
 
             visited.Add(fromHere, true);
             points.Enqueue(fromHere);
@@ -296,11 +314,12 @@ namespace StardewSkeletalMinionsMod
                             Point key = new Point(tileX, tileY);
                             if (!visited.ContainsKey(key))
                             {
-                                // check if this spawn point is eligible; if so, return it
+                                // check if this spawn point is eligible; if so, add it to the list
                                 if (!location.isCollidingPosition(new Rectangle(key.X * Game1.tileSize + 1, key.Y * Game1.tileSize + 1, Game1.tileSize - 2, Game1.tileSize - 2), Game1.viewport, exemplar))
                                 {
-                                    spawnPoint = key;
-                                    return true;
+                                    spawnPoints.Add(key);
+                                    if (spawnPoints.Count == numSpawnPoints)
+                                        return spawnPoints;
                                 }
 
                                 visited.Add(key, true);
@@ -310,16 +329,13 @@ namespace StardewSkeletalMinionsMod
                     }
                 }
             }
-
-
-            return false;
+            return spawnPoints;
         }
 
         private void spawnMinionsForHarvesting(GameLocation location, StardewValley.Farmer who)
         {
-            const int tasksPerMinion = 50;
-
-            SkeletalMinionsMod.mod.Monitor.Log("*** SPAWNING SKELETONS ***");
+            const int tasksPerMinion = 25;
+            
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
@@ -334,23 +350,23 @@ namespace StardewSkeletalMinionsMod
             int numMinions = tasks.Count / tasksPerMinion;
             if (numMinions == 0) numMinions = 1;
 
-            for (int i=0; i<numMinions; ++i)
+            List<Point> spawnPoints = findNearestSpawnLocations(who.getTileLocationPoint(), location, (uint)numMinions);
+
+            for (int i=0; i<spawnPoints.Count; ++i)
             {
-                Point spawnPoint = new Point();
-                if (!findNearestSpawnLocation(who.getTileLocationPoint(), location, ref spawnPoint)) continue;
                 location.characters.Add(
                     new SkeletalMinion(
-                        new Vector2(spawnPoint.X, spawnPoint.Y) * Game1.tileSize,
+                        new Vector2(spawnPoints[i].X, spawnPoints[i].Y) * Game1.tileSize,
                         location, who,
                         SkeletalMinionsMod.taskPool,
                         new List<string> { nameof(HarvestingMinionTask) }
                     )
                 );
+                Utility.drawLightningBolt(new Vector2(spawnPoints[i].X * Game1.tileSize, spawnPoints[i].Y * Game1.tileSize), location);
             }
 
             sw.Stop();
-            SkeletalMinionsMod.mod.Monitor.Log($"Spawning minions took {sw.ElapsedMilliseconds} ms.");
-            SkeletalMinionsMod.mod.Monitor.Log("**********************");
+            SkeletalMinionsMod.mod.Monitor.Log($"Spawning (harvesting) minions took {sw.ElapsedMilliseconds} ms.");
         }
 
         private List<HarvestingMinionTask> generateHarvestingTasks(GameLocation location)
@@ -567,16 +583,21 @@ namespace StardewSkeletalMinionsMod
             return replacement;
         }
 
-        // need no additional save data--return an empty dictionary
+        // return additional data that we will need to reconstruct the Skeleton Wand after loading
         public Dictionary<string, string> getAdditionalSaveData()
         {
-            return new Dictionary<string, string>();
+            Dictionary<string, string> saveData = new Dictionary<string, string>();
+            saveData.Add("wandMode", wandMode.ToString());
+            return saveData;
         }
 
         // rebuild the object from its replacement.
         public void rebuild(Dictionary<string, string> additionalSaveData, object replacement)
         {
-            build();
+            if (additionalSaveData.ContainsKey("wandMode"))
+                build(additionalSaveData["wandMode"]);
+            else
+                build(WandMode.Harvesting.ToString());
 
             Chest chest = replacement as Chest;
             if (!chest.isEmpty())
@@ -607,19 +628,26 @@ namespace StardewSkeletalMinionsMod
         }
 
         // Build the skeleton wand object.
-        private void build()
+        private void build(string wandMode)
         {
             numAttachmentSlots = 2;
             attachments = new StardewValley.Object[numAttachmentSlots];
-            wandMode = WandMode.Planting;
+            this.wandMode = (wandMode.Equals(WandMode.Harvesting.ToString()) ? WandMode.Harvesting : WandMode.Planting);
             upgradeLevel = 0;
             initialParentTileIndex = 21;
             currentParentTileIndex = initialParentTileIndex;
             indexOfMenuItemView = 0;
             name = "Skeleton Wand";
-            description = "An ancient and powerful wand.";
+            description = loadDescription();
             stackable = false;
             category = -99;
+        }
+
+        private void playWandUseEffect(StardewValley.Farmer who)
+        {
+            // taken from StardewValley.Tools:Wand.cs
+            for (int index = 0; index < 12; ++index)
+                who.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(354, (float)Game1.random.Next(25, 75), 6, 1, new Vector2((float)Game1.random.Next((int)who.position.X - Game1.tileSize * 4, (int)who.position.X + Game1.tileSize * 3), (float)Game1.random.Next((int)who.position.Y - Game1.tileSize * 4, (int)who.position.Y + Game1.tileSize * 3)), false, Game1.random.NextDouble() < 0.5));
         }
     }
 }

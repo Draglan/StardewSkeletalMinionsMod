@@ -43,7 +43,6 @@ namespace StardewSkeletalMinionsMod
         {
             ownerReachedTask = true;
             pickTimer = pickTime;
-            SkeletalMinionsMod.mod.Monitor.Log($"Reached harvesting task that has {cropLocations.Count} crops.");
         }
 
         public override bool isAtEnd(PathNode currentNode, Point endPoint, GameLocation location, Character c)
@@ -89,10 +88,9 @@ namespace StardewSkeletalMinionsMod
 
                                     pickTimer = pickTime;
                                     animating = true;
-                                    SkeletalMinionsMod.mod.Monitor.Log(invString());
                                 }
                                 else
-                                    SkeletalMinionsMod.mod.Monitor.Log($"Went through step w/o being able to harvest...");
+                                    SkeletalMinionsMod.mod.Monitor.Log($"(?)Went through step w/o being able to harvest...");
                             }
                         }
                     }

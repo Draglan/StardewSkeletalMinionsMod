@@ -13,7 +13,6 @@ using xTile.Dimensions;
 
 namespace StardewSkeletalMinionsMod
 {
-    [XmlInclude(typeof(SkeletalMinion))]
     public class SkeletalMinion : NPC
     {
         public const string skeletalMinionName = "Skeletal Minion";
@@ -180,7 +179,7 @@ namespace StardewSkeletalMinionsMod
         public void kill(bool killImmediately = false)
         {
             isDead = true;
-            if (killImmediately)
+            if (!killImmediately)
                 deathTimer = deathTime;
             else
                 deathTimer = 0;

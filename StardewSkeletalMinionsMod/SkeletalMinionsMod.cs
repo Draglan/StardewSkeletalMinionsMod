@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewValley;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using StardewValley.Menus;
 using StardewValley.TerrainFeatures;
-using System.Xml.Serialization;
-using StardewValley.Monsters;
-using StardewValley.Characters;
-using StardewValley.Quests;
+using StardewValley.Menus;
+using System.Collections.Generic;
+using StardewValley.Objects;
+using StardewValley.Locations;
 
 namespace StardewSkeletalMinionsMod
 {
-
     public class SkeletalMinionsMod : Mod
     {
         public static Mod mod;
@@ -32,9 +26,72 @@ namespace StardewSkeletalMinionsMod
             StardewModdingAPI.Events.ControlEvents.KeyPressed += ControlEvents_KeyPressed;
             StardewModdingAPI.Events.ControlEvents.MouseChanged += ControlEvents_MouseChanged;
             StardewModdingAPI.Events.SaveEvents.BeforeSave += SaveEvents_BeforeSave;
+            StardewModdingAPI.Events.MenuEvents.MenuChanged += MenuEvents_MenuChanged;
 
             helper.ConsoleCommands.Add("growallcrops", "Completely grow all crops in the current location.", GrowAllCrops);
             helper.ConsoleCommands.Add("seeds", "Add seeds to your inventory.", AddSeedsToInventory);
+            helper.ConsoleCommands.Add("wandmode", "Toggle Skeleton Wand wand mode.", toggleWandMode);
+        }
+
+        /* Add the skeleton wand to Marlon's store */
+        private void MenuEvents_MenuChanged(object sender, StardewModdingAPI.Events.EventArgsClickableMenuChanged e)
+        {
+            if (e.NewMenu is ShopMenu)
+            {
+                ShopMenu shop = e.NewMenu as ShopMenu;
+                if (shop.portraitPerson != null && shop.portraitPerson.name.Equals("Marlon"))
+                {
+                    bool completedSkeletonTask = Game1.stats.getMonstersKilled("Skeleton") + Game1.stats.getMonstersKilled("Skeleton Mage") >= 50;
+                    if (completedSkeletonTask && !doesPlayerHaveSkeletonWandAnywhere())
+                    {
+                        Dictionary<Item, int[]> itemPriceAndStock = Helper.Reflection.GetPrivateValue<Dictionary<Item, int[]>>(shop, "itemPriceAndStock");
+                        List<Item> forSale = Helper.Reflection.GetPrivateValue<List<Item>>(shop, "forSale");
+
+                        SkeletonWand skeletonWand = new SkeletonWand();
+                        itemPriceAndStock.Add(skeletonWand, new int[2] { 50000, 1 });
+                        forSale.Add(skeletonWand);
+                    }
+                }
+            }
+        }
+
+        private bool doesPlayerHaveSkeletonWandAnywhere()
+        {
+            // check inventory
+            foreach (Item item in Game1.player.items)
+            {
+                if (item is SkeletonWand) return true;
+            }
+
+            // check all chests, debris everywhere in the world
+            foreach (GameLocation l in Game1.locations)
+            {
+                foreach (StardewValley.Object o in l.Objects.Values)
+                {
+                    if (o is Chest)
+                    {
+                        foreach (Item item in (o as Chest).items)
+                        {
+                            if (item is SkeletonWand) return true;
+                        }
+                    }
+                }
+
+                foreach (Debris debris in l.debris)
+                {
+                    if (debris.item is SkeletonWand) return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void toggleWandMode(string command, string[] args) {
+            foreach (Item o in Game1.player.items) {
+                if (o is SkeletonWand) {
+                    (o as SkeletonWand).goToNextWandMode();
+                }
+            }
         }
 
         private void GrowAllCrops(string command, string[] args)
@@ -142,8 +199,8 @@ namespace StardewSkeletalMinionsMod
 
         private void SaveEvents_AfterLoad(object sender, EventArgs e)
         {
-            if (Game1.player.hasItemWithNameThatContains("Skeleton Wand") == null)
-                Game1.player.addItemToInventoryBool(new SkeletonWand());
+            //if (Game1.player.hasItemWithNameThatContains("Skeleton Wand") == null)
+                //Game1.player.addItemToInventoryBool(new SkeletonWand());
         }
     }
 }

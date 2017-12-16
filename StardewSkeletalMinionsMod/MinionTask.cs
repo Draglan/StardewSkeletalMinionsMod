@@ -96,6 +96,7 @@ namespace StardewSkeletalMinionsMod
         protected void complete(GameTime time, GameLocation location)
         {
             taskComplete = true;
+            owner?.taskPool?.markTaskComplete(this);
             onTaskComplete(time, location);
         }
 
@@ -103,6 +104,20 @@ namespace StardewSkeletalMinionsMod
         {
             return other.position.Equals(position) &&
                 other.name.Equals(name);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj != null && obj is MinionTask)
+            {
+                return Equals(obj as MinionTask);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return name.GetHashCode() * 7919 + position.GetHashCode();
         }
 
         public override string ToString()
